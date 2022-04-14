@@ -1,34 +1,3 @@
-# SPDX-FileCopyrightText: 2017 Dan Halbert for Adafruit Industries
-# SPDX-FileCopyrightText: 2017 Tony DiCola for Adafruit Industries
-# SPDX-FileCopyrightText: 2017 Kattni Rembor for Adafruit Industries
-#
-# SPDX-License-Identifier: MIT
-
-# The MIT License (MIT)
-#
-# Copyright (c) 2017 Dan Halbert for Adafruit Industries
-# Copyright (c) 2017 Kattni Rembor, Tony DiCola for Adafruit Industries
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
-# Circuit Playground Sound Meter
-
 import array
 import math
 import audiobusio
@@ -44,6 +13,11 @@ FANCY_CHSV_GREEN = 1/3
 FANCY_CHSV_CYAN = 1/2
 FANCY_CHSV_BLUE = 2/3
 FANCY_CHSV_PURPLE = 5/6
+
+# Set up NeoPixels and turn them all off.
+pixels_circuit = neopixel.NeoPixel(board.NEOPIXEL, 10, brightness=0.1, auto_write=False)
+pixels_neo = neopixel.NeoPixel(board.A2, 60, brightness=1, auto_write=False, pixel_order=neopixel.RGBW)
+pixels = pixels_neo
 
 
 def fancy_palette(pixels, start, end):
@@ -70,7 +44,7 @@ def fancy_palette(pixels, start, end):
 # Color of the peak pixel.
 PEAK_COLOR = (0,0,0)
 # Number of total pixels - 10 build into Circuit Playground
-NUM_PIXELS = 10
+NUM_PIXELS = 60
 
 # Exponential scaling factor.
 # Should probably be in range -10 .. 10 to be reasonable.
@@ -116,11 +90,6 @@ def volume_color(volume):
 
 # Main program
 
-# Set up NeoPixels and turn them all off.
-pixels = neopixel.NeoPixel(board.NEOPIXEL, NUM_PIXELS, brightness=0.1, auto_write=False)
-pixels.fill(0)
-pixels.show()
-
 mic = audiobusio.PDMIn(board.MICROPHONE_CLOCK, board.MICROPHONE_DATA,
                        sample_rate=16000, bit_depth=16)
 
@@ -141,6 +110,14 @@ input_ceiling = input_floor + 500
 
 peak = 0
 
+def blink_circuit():
+    pixels_circuit.fill(255)
+    pixels_circuit.show()
+    time.sleep(0.02)
+    pixels_circuit.fill(0)
+    pixels_circuit.show()
+    time.sleep(0.02)
+
 while True:
     mic.record(samples, len(samples))
     magnitude = normalized_rms(samples)
@@ -153,8 +130,12 @@ while True:
 
     # Light up pixels that are below the scaled and interpolated magnitude.
     pixels.fill(0)
-    palette = fancy_palette(pixels, FANCY_CHSV_GREEN, FANCY_CHSV_RED)
+    palette = fancy_palette(pixels, FANCY_CHSV_RED, FANCY_CHSV_GREEN)
+    max_volume = len(pixels) - 2
+    max_reached = False
     for i in range(NUM_PIXELS):
+        if c > max_volume:
+            max_reached = True
         if i < c:
             pixels[i] = palette[i]
         # Light up the peak pixel and animate it slowly dropping.
@@ -162,6 +143,9 @@ while True:
             peak = min(c, NUM_PIXELS - 1)
         elif peak > 0:
             peak = peak - 1
+
         #if peak > 0:
         #    pixels[int(peak)] = (255, 0, 0)
     pixels.show()
+    if max_reached:
+        blink_circuit()
