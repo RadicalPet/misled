@@ -17,7 +17,7 @@ PURPLE = (180, 0, 255)
 WHITE = (255, 255, 255)
 OFF = (0, 0, 0)
 
-def rainbow_cycle(wait):
+def rainbow_cycle(wait, pixels):
     for j in range(255):
         for i in range(len(pixels)):
             rc_index = (i * 256 // 10) + j * 5
@@ -29,10 +29,10 @@ def rainbow_cycle(wait):
 def color_chase(color, wait, pixels):
     for i in range(len(pixels)):
         pixels[i] = color
-        pixels_circuit[round(i/6)] = color
+        pixels[round(i/6)] = color
         time.sleep(wait)
         pixels.show()
-        pixels_circuit.show()
+        pixel.show()
     time.sleep(0.5)
 
 
@@ -52,12 +52,13 @@ def rainbow(wait, pixels):
             pixels[i] = colorwheel(idx & 255)
         pixels.show()
         time.sleep(wait)
-        for i in range(len(pixels_circuit)):
+        for i in range(len(pixels)):
             idx = int(i + j)
-            pixels_circuit[i] = colorwheel(idx & 255)
-        pixels_circuit.show()
+            pixels[i] = colorwheel(idx & 255)
+        pixels.show()
         time.sleep(wait)
 
 while True:
-    color_chase_demo(pixels_neo)
-
+    #rainbow_cycle(0.03, pixels_circuit)
+    rainbow(0.03, pixels_neo)
+    

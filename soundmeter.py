@@ -7,6 +7,9 @@ import time
 
 import adafruit_fancyled.adafruit_fancyled as fancy
 
+#from adafruit_circuitplayground import cp
+
+
 FANCY_CHSV_RED = 0
 FANCY_CHSV_YELLOW = 1/6
 FANCY_CHSV_GREEN = 1/3
@@ -111,12 +114,14 @@ input_ceiling = input_floor + 500
 peak = 0
 
 def blink_circuit():
-    pixels_circuit.fill(255)
+    #cp.play_file("shutup.wav")
+    pixels_circuit.fill((255, 0, 0))
     pixels_circuit.show()
     time.sleep(0.02)
     pixels_circuit.fill(0)
     pixels_circuit.show()
     time.sleep(0.02)
+
 
 while True:
     mic.record(samples, len(samples))
@@ -148,4 +153,5 @@ while True:
         #    pixels[int(peak)] = (255, 0, 0)
     pixels.show()
     if max_reached:
-        blink_circuit()
+        for i in range(5):
+            blink_circuit()
